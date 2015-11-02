@@ -1,6 +1,6 @@
 -- Select a book with the average of it's rates
 
-SELECT B.ISBN, B.Title, A.Name, A.Firstname, AVG(C.Rate)
+SELECT AVG(C.Rate)
 FROM BOOK B, AUTHOR A, BOOK_AUTHOR BA, CRITICISM C
 WHERE B.ISBN = BA.IdBook
 	AND A.Id = BA.IdAuthor

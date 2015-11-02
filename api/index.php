@@ -1,145 +1,216 @@
 <?php
-require 'vendor/autoload.php';	
+require 'vendor/autoload.php';
 
 $app= new \Slim\Slim();
 
-//var_dump($app);
-//die;
-
-
-const DB_SERVER = "192.168.0.98";
+const DB_SERVER = "192.168.240.31";
 const DB_USER = "root";
 const DB_PASSWORD = "";
 const DB = "monPetitBouquin";
 
+const REQUEST_ALL_BOOK = "SELECT B.ISBN, B.Title,B.Editor,A.Name,A.Firstname
+                          FROM AUTHOR A, BOOK B, BOOK_AUTHOR BA
+                          WHERE B.ISBN = BA.IdBook
+                            AND A.Id = BA.IdAuthor";
+const REQUEST_ALL_AUTHOR = "SELECT Name, Firstname, birthYear, deathYear, COUNT(IdBook)
+                            FROM AUTHOR, BOOK_AUTHOR
+                            WHERE Id = IdAuthor
+                              GROUP BY Name, Firstname";
 
-//echo $mysqli->host_info . "\n";
-//var_dump($mysqli);
+
+// Function getting all the books in the database
 $app->get('/book', function () {
-	$mysqli = new mysqli(DB_SERVER, DB_USER, DB_PASSWORD, DB);
-if ($mysqli->connect_errno) {
-    echo "Echec lors de la connexion à MySQL : (" . $mysqli->connect_errno . ") " . $mysqli->connect_error;
-}
-    $sql = $mysqli->query("SELECT B.ISBN, B.Title,A.Name,A.Firstname FROM AUTHOR A, BOOK B, BOOK_AUTHOR BA WHERE B.ISBN = BA.IdBook AND A.Id = BA.IdAuthor");
-    //var_dump($sql);
-    //die;
-        
-            //$result = array();
-            while($rlt = $sql->fetch_array(MYSQLI_ASSOC))
-            {
-            	$result[] = $rlt;
-            }
-            // If success everythig is good send header as "OK" and return list of users in JSON format
-        $return = json_encode($result);
-        var_dump($return);
-        die;
-
-});
-
-$app->get('/author', function () {
-	$mysqli = new mysqli(DB_SERVER, DB_USER, DB_PASSWORD, DB);
-if ($mysqli->connect_errno) {
-    echo "Echec lors de la connexion à MySQL : (" . $mysqli->connect_errno . ") " . $mysqli->connect_error;
-}
-    $sql = $mysqli->query("SELECT Name, Firstname, COUNT(IdBook) FROM AUTHOR, BOOK_AUTHOR WHERE Id = IdAuthor GROUP BY Name, Firstname");
-    //var_dump($sql);
-    //die;
-
-            //$result = array();
-            while($rlt = $sql->fetch_array(MYSQLI_ASSOC))
-            {
-            	$result[] = $rlt;
-            }
-            // If success everythig is good send header as "OK" and return list of users in JSON format
-        $return = json_encode($result);
-        var_dump($return);
-        die;
-
-});
-
-$app->get('/critism/:bookId', function () {
-	$mysqli = new mysqli(DB_SERVER, DB_USER, DB_PASSWORD, DB);
-if ($mysqli->connect_errno) {
-    echo "Echec lors de la connexion à MySQL : (" . $mysqli->connect_errno . ") " . $mysqli->connect_error;
-}
-    $sql = $mysqli->query("SELECT IdBook, Rate, Comment FROM CRITICISM C WHERE IdBook = $bookId");
-    //var_dump($sql);
-    //die;
-
-            //$result = array();
-            while($rlt = $sql->fetch_array(MYSQLI_ASSOC))
-            {
-            	$result[] = $rlt;
-            }
-            // If success everythig is good send header as "OK" and return list of users in JSON format
-        $return = json_encode($result);
-        var_dump($return);
-        die;
-
-});
-
-$app->get('/critism/:bookId', function () {
-	$mysqli = new mysqli(DB_SERVER, DB_USER, DB_PASSWORD, DB);
-if ($mysqli->connect_errno) {
-    echo "Echec lors de la connexion à MySQL : (" . $mysqli->connect_errno . ") " . $mysqli->connect_error;
-}
-    $sql = $mysqli->query("SELECT IdBook, Rate, Comment FROM CRITICISM C WHERE IdBook = $bookId");
-    //var_dump($sql);
-    //die;
-
-            //$result = array();
-            while($rlt = $sql->fetch_array(MYSQLI_ASSOC))
-            {
-            	$result[] = $rlt;
-            }
-            // If success everythig is good send header as "OK" and return list of users in JSON format
-        $return = json_encode($result);
-        var_dump($return);
-        die;
-
-});
-
-$app->get('/search/ISBN=:bookId&Author=:authorName&Title=:title', function () {
 	$mysqli = new mysqli(DB_SERVER, DB_USER, DB_PASSWORD, DB);
     if ($mysqli->connect_errno) {
         echo "Echec lors de la connexion à MySQL : (" . $mysqli->connect_errno . ") " . $mysqli->connect_error;
     }
-    if($bookId!="" && $authorId=="" && $title=="")
+
+    $sql = $mysqli->query(REQUEST_ALL_BOOK);
+
+    while($rlt = $sql->fetch_array(MYSQLI_ASSOC))
     {
-        $sql = $mysqli->query("SELECT ISBN, Title, Name, Firstname FROM BOOK, AUTHOR, BOOK_AUTHOR WHERE ISBN = IdBook AND IdAuthor = Id AND (CAST(ISBN AS CHAR) LIKE $bookId)");
+        $result[] = $rlt;
+    }
+
+    // If success everythig is good send header as "OK" and return list of users in JSON format
+    $return = json_encode($result);
+    echo $return;
+    return $return;
+});
+
+$app->get('/book/:authorId', function ($authorId) {
+    $mysqli = new mysqli(DB_SERVER, DB_USER, DB_PASSWORD, DB);
+    if ($mysqli->connect_errno) {
+        echo "Echec lors de la connexion à MySQL : (" . $mysqli->connect_errno . ") " . $mysqli->connect_error;
+    }
+
+    $REQUEST_AUTHOR_BOOK = "SELECT B.ISBN, B.Title,B.Editor
+                          FROM AUTHOR A, BOOK B, BOOK_AUTHOR BA
+                          WHERE A.ID = '".$authorId."'
+                          GROUP BY B.ISBN, A.Name";
+
+    $sql = $mysqli->query($REQUEST_AUTHOR_BOOK);
+
+    while($rlt = $sql->fetch_array(MYSQLI_ASSOC))
+    {
+        $result[] = $rlt;
+    }
+
+    // If success everythig is good send header as "OK" and return list of users in JSON format
+    $return = json_encode($result);
+    echo $return;
+    return $return;
+});
+
+// Function getting all the authors in the database
+$app->get('/author', function () {
+	$mysqli = new mysqli(DB_SERVER, DB_USER, DB_PASSWORD, DB);
+    if ($mysqli->connect_errno) {
+        echo "Echec lors de la connexion à MySQL : (" . $mysqli->connect_errno . ") " . $mysqli->connect_error;
+    }
+    $sql = $mysqli->query(REQUEST_ALL_AUTHOR);
+
+    while($rlt = $sql->fetch_array(MYSQLI_ASSOC))
+    {
+        $result[] = $rlt;
+    }
+
+    // If success everythig is good send header as "OK" and return list of users in JSON format
+    $return = json_encode($result);
+    echo $return;
+    return $return;
+});
+
+// Function getting all the criticisms for one book $bookId as ISBN
+$app->get('/criticism/:bookId', function ($bookId) {
+	$mysqli = new mysqli(DB_SERVER, DB_USER, DB_PASSWORD, DB);
+
+    $REQUEST_CRITICISM_BY_BOOK = "SELECT IdBook, IdUser, Rate, Comment FROM CRITICISM WHERE IdBook LIKE '$bookId%'";
+
+    if ($mysqli->connect_errno) {
+        echo "Echec lors de la connexion à MySQL : (" . $mysqli->connect_errno . ") " . $mysqli->connect_error;
+    }
+    $sql = $mysqli->query($REQUEST_CRITICISM_BY_BOOK);
+
+    while($rlt = $sql->fetch_array(MYSQLI_ASSOC))
+    {
+        $result[] = $rlt;
+    }
+
+    // If success everythig is good send header as "OK" and return list of users in JSON format
+    $return = json_encode($result);
+    echo $return;
+    return $return;
+});
+
+// Function searching a list of books by a part of their ISBNs or a part of their authors names or a part of their titles
+$app->post('/search', function () use ($app){
+    if(isset($_POST['research'])) {
+        $research = $_POST['research'];
+        $REQUEST_SEARCH = "SELECT ISBN, Title, Editor, Name, Firstname, birthYear, deathYear
+                                        FROM BOOK, AUTHOR, BOOK_AUTHOR
+                                        WHERE ISBN = IdBook
+                                          AND IdAuthor = Id
+                                          AND (CAST(ISBN AS CHAR) LIKE '%$research%'
+                                            OR (Name LIKE '%$research%' OR Firstname LIKE '%$research%')
+                                            OR (Title LIKE '%$research%'))";
+    }
+
+	$mysqli = new mysqli(DB_SERVER, DB_USER, DB_PASSWORD, DB);
+
+    if ($mysqli->connect_errno) {
+        echo "Echec lors de la connexion à MySQL : (" . $mysqli->connect_errno . ") " . $mysqli->connect_error;
+    }
+
+    if(isset($research))
+    {
+        $sql = $mysqli->query($REQUEST_SEARCH);
         while($rlt = $sql->fetch_array(MYSQLI_ASSOC))
         {
             $result[] = $rlt;
         }
     }
-    else if($bookId=="" && $authorName!="" && $title=="")
-    {
-        $sql = $mysqli->query("SELECT ISBN, Title, Name, Firstname FROM BOOK, AUTHOR, BOOK_AUTHOR WHERE ISBN = IdBook AND IdAuthor = Id AND (Name LIKE $authorName OR Firstname LIKE $authorName)");
-        while($rlt = $sql->fetch_array(MYSQLI_ASSOC))
-        {
-            $result[] = $rlt;
-        }
-    }
-    else if($bookId=="" && $authorName="" && $title!="")
-    {
-        $sql = $mysqli->query("SELECT ISBN, Title, Name, Firstname FROM BOOK, AUTHOR, BOOK_AUTHOR WHERE ISBN = IdBook AND IdAuthor = Id AND (Title LIKE $title)");
-        while($rlt = $sql->fetch_array(MYSQLI_ASSOC))
-        {
-            $result[] = $rlt;
-        }
-    }
-    else if($bookId=="" && $authorName="" && $title=="")
+    else
     {
         echo "You didn't entered a research";
     }
-            //$result = array();
+
     // If success everythig is good send header as "OK" and return list of users in JSON format
     $return = json_encode($result);
-    var_dump($return);
-    die;
-
+    echo $return;
+    return $return;
 });
 
+$app->post('/insertBook', function(){
+    $mysqli = new mysqli(DB_SERVER, DB_USER, DB_PASSWORD, DB);
+    if ($mysqli->connect_errno) {
+        echo "Echec lors de la connexion à MySQL : (" . $mysqli->connect_errno . ") " . $mysqli->connect_error;
+    }
+
+    if(isset($_POST['isbn']) && isset($_POST['title']) && isset($_POST['editor']) && isset($_POST['authorName']) && isset($_POST['authorFirstname']) && isset($_POST['birth']) && isset($_POST['death'])){
+        $REQUEST_INSERT_USER = "INSERT INTO USER (ISBN, Title, Editor)
+                                SELECT ('".$_POST['isbn']."','".$_POST['title']."','".$_POST['editor']."')
+                                FROM dual
+                                WHERE NOT EXISTS(SELECT *
+                                                  FROM user
+                                                  WHERE ISBN = '".$_POST['isbn']."');
+                                INSERT INTO AUTHOR (Name, Firstname, birthYear, deathYear)
+                                SELECT('".$_POST['authorName']."','".$_POST['authorFirstname']."','".$_POST['birth']."','".$_POST['death']."')
+                                FROM dual
+                                WHERE NOT EXISTS(SELECT *
+                                                  FROM AUTHOR
+                                                  WHERE Name='".$_POST['authorName']."'AND Firstname='".$_POST['authorFirstname']."' AND birthYear='".$_POST['birth']."');
+                                INSERT INTO BOOK_AUTHOR (IdBook,IdAuthor)
+                                VALUES('".$_POST['isbn']."',(SELECT Id FROM AUTHOR WHERE Name='".$_POST['authorName']."'AND Firstname='".$_POST['authorFirstname']."' AND birthYear='".$_POST['birth']."'))
+
+                                ";
+        $sql = $mysqli->query($REQUEST_INSERT_USER);
+
+        while($rlt = $sql->fetch_array(MYSQLI_ASSOC))
+        {
+            $result[] = $rlt;
+        }
+
+        // If success everythig is good send header as "OK" and return list of users in JSON format
+        $return = json_encode($result);
+        echo $return;
+        return $return;
+    }
+});
+
+$app->post('/insertAuthor', function(){
+    $mysqli = new mysqli(DB_SERVER, DB_USER, DB_PASSWORD, DB);
+    if ($mysqli->connect_errno) {
+        echo "Echec lors de la connexion à MySQL : (" . $mysqli->connect_errno . ") " . $mysqli->connect_error;
+    }
+
+    if(isset($_POST['name']) && isset($_POST['firstname']) && isset($_POST['birthYear']) && isset($_POST['deathYear'])){
+        $REQUEST_INSERT_USER = "INSERT INTO AUTHOR (Name, Firstname, birthyear, deathYear)
+                                SELECT ('".$_POST['name']."','".$_POST['firstname']."','".$_POST['birthYear']."','".$_POST['deathYear']."')
+                                FROM dual
+                                WHERE NOT EXISTS(SELECT *
+                                                  FROM AUTHOR
+                                                  WHERE Name = '".$_POST['name']."'
+                                                  AND Firstname = '".$_POST['firstname']."'
+                                                  AND birthYear = '".$_POST['birthYear']."')
+                                ";
+        $sql = $mysqli->query($REQUEST_INSERT_USER);
+    }
+});
+
+$app->post('/insertCriticism', function(){
+    $mysqli = new mysqli(DB_SERVER, DB_USER, DB_PASSWORD, DB);
+    if ($mysqli->connect_errno) {
+        echo "Echec lors de la connexion à MySQL : (" . $mysqli->connect_errno . ") " . $mysqli->connect_error;
+    }
+
+    if(isset($_POST['idBook']) && isset($_POST['idUser']) && isset($_POST['Rate']) && isset($_POST['Comment'])){
+        $REQUEST_INSERT_USER = "INSERT INTO CRITICISM (idBook, idUser, Rate, Comment)
+                                VALUES ('".$_POST['idBook']."','".$_POST['idUser']."','".$_POST['Rate']."','".$_POST['Comment']."')
+                                ";
+        $sql = $mysqli->query($REQUEST_INSERT_USER);
+    }
+});
 
 $app->run();
 
