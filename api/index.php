@@ -8,10 +8,15 @@ const DB_USER = "root";
 const DB_PASSWORD = "";
 const DB = "monPetitBouquin";
 
-const REQUEST_ALL_BOOK = "SELECT B.ISBN, B.Title,B.Editor,A.Name,A.Firstname
-                          FROM AUTHOR A, BOOK B, BOOK_AUTHOR BA
-                          WHERE B.ISBN = BA.IdBook
-                            AND A.Id = BA.IdAuthor";
+const REQUEST_ALL_BOOK = "SELECT B.ISBN, B.Title, A.Name, A.Firstname, AVG(C.Rate)
+                            FROM BOOK B
+                                  LEFT JOIN BOOK_AUTHOR BA
+                                      ON B.ISBN =BA.IdBook
+                                  LEFT JOIN AUTHOR A
+                                      ON A.Id = BA.IdAuthor
+                                  LEFT JOIN CRITICISM C
+                                      ON B.ISBN = C.IdBook
+                            GROUP BY B.ISBN, B.Title, A.Name, A.Firstname";
 const REQUEST_ALL_AUTHOR = "SELECT Name, Firstname, birthYear, deathYear, COUNT(IdBook)
                             FROM AUTHOR, BOOK_AUTHOR
                             WHERE Id = IdAuthor
