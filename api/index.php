@@ -8,6 +8,7 @@ const DB_USER = "root";
 const DB_PASSWORD = "";
 const DB = "monPetitBouquin";
 
+// SQL request selecting all books with ISBN, title, Author's name and firstname, and average of all rates
 const REQUEST_ALL_BOOK = "SELECT B.ISBN, B.Title, A.Name, A.Firstname, AVG(C.Rate)
                             FROM BOOK B
                                   LEFT JOIN BOOK_AUTHOR BA
@@ -17,13 +18,15 @@ const REQUEST_ALL_BOOK = "SELECT B.ISBN, B.Title, A.Name, A.Firstname, AVG(C.Rat
                                   LEFT JOIN CRITICISM C
                                       ON B.ISBN = C.IdBook
                             GROUP BY B.ISBN, B.Title, A.Name, A.Firstname";
+                            
+// request selecting all authors with name firstname date of birth, date of death and total of books wrote
 const REQUEST_ALL_AUTHOR = "SELECT Name, Firstname, birthYear, deathYear, COUNT(IdBook)
                             FROM AUTHOR, BOOK_AUTHOR
                             WHERE Id = IdAuthor
                               GROUP BY Name, Firstname";
 
 
-// Function getting all the books in the database
+// Function selecting all the books in the database and returning them as a JSON array
 $app->get('/book', function () {
 	$mysqli = new mysqli(DB_SERVER, DB_USER, DB_PASSWORD, DB);
     if ($mysqli->connect_errno) {
@@ -43,6 +46,7 @@ $app->get('/book', function () {
     return $return;
 });
 
+// Function selecting all the books wrote by an author in the database and returning them as a JSON array
 $app->get('/book/:authorId', function ($authorId) {
     $mysqli = new mysqli(DB_SERVER, DB_USER, DB_PASSWORD, DB);
     if ($mysqli->connect_errno) {
@@ -67,7 +71,7 @@ $app->get('/book/:authorId', function ($authorId) {
     return $return;
 });
 
-// Function getting all the authors in the database
+// Function getting all the authors in the database and returning them as a JSON array
 $app->get('/author', function () {
 	$mysqli = new mysqli(DB_SERVER, DB_USER, DB_PASSWORD, DB);
     if ($mysqli->connect_errno) {
@@ -86,7 +90,7 @@ $app->get('/author', function () {
     return $return;
 });
 
-// Function getting all the criticisms for one book $bookId as ISBN
+// Function getting all the criticisms for one book $bookId as ISBN and returning them as a JSON array
 $app->get('/criticism/:bookId', function ($bookId) {
 	$mysqli = new mysqli(DB_SERVER, DB_USER, DB_PASSWORD, DB);
 
@@ -109,6 +113,7 @@ $app->get('/criticism/:bookId', function ($bookId) {
 });
 
 // Function searching a list of books by a part of their ISBNs or a part of their authors names or a part of their titles
+// and returning them as a JSON array
 $app->post('/search', function () use ($app){
     if(isset($_POST['research'])) {
         $research = $_POST['research'];
@@ -146,6 +151,7 @@ $app->post('/search', function () use ($app){
     return $return;
 });
 
+// Function creating a new book in the database
 $app->post('/insertBook', function(){
     $mysqli = new mysqli(DB_SERVER, DB_USER, DB_PASSWORD, DB);
     if ($mysqli->connect_errno) {
@@ -183,6 +189,7 @@ $app->post('/insertBook', function(){
     }
 });
 
+// Function creating a new author in the database
 $app->post('/insertAuthor', function(){
     $mysqli = new mysqli(DB_SERVER, DB_USER, DB_PASSWORD, DB);
     if ($mysqli->connect_errno) {
@@ -203,6 +210,7 @@ $app->post('/insertAuthor', function(){
     }
 });
 
+// Function creating a new criticism in the database
 $app->post('/insertCriticism', function(){
     $mysqli = new mysqli(DB_SERVER, DB_USER, DB_PASSWORD, DB);
     if ($mysqli->connect_errno) {
